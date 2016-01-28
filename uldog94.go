@@ -17,7 +17,7 @@ func udpRecieve(port string){
     addr := net.ResolveUDPAddr("udp",":" + port)
     sock := net.ListenUDP("udp",addr)
     for {
-        //sende shiten da
+        //ta i mot shiten
         _,_, err:=sock.ReadFromUDP(buff)
 		if err != nil {
 			fmt.Println(err)
