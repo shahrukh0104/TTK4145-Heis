@@ -1,50 +1,56 @@
-package main 
+package main
 
-import(
-        "fmt"
-        "net"
-        "time
+import (
+	"fmt"
+	"net"
+	"time"
 )
 
-const(
-        host =
-        udpPort = 
-        portT =
+const (
+	host    = 20016
+	udpPort = "30000" //Listen to this port
 )
 
-func udpRecieve(port string){
-    buff := make([]byte, 1024)
-    addr := net.ResolveUDPAddr("udp",":" + port)
-    sock := net.ListenUDP("udp",addr)
-    for {
-        //ta i mot shiten
-        _,_, err:=sock.ReadFromUDP(buff)
+func udpRecieve(port string) {
+	buff := make([]byte, 1024)
+	addr, _ := net.ResolveUDPAddr("udp", ":"+port)
+	sock, _ := net.ListenUDP("udp", addr) //Listner
+	for {
+		n, recvaddr, err := sock.ReadFromUDP(buff)
 		if err != nil {
 			fmt.Println(err)
-		} 
-		fmt.Println(string(buff[:]))
-    }
-    
+		}
+		fmt.Println(string(buff[:n]))
+		fmt.Printf("%+v\n", recvaddr)
+		udpSend(recvaddr)
+		time.Sleep(100 * time.Millisecond)
+
+	}
+	defer sock.Close()
 }
 
-func udpSend(){
-    raddr := net.ResolveUDPAddr("udp",net.JoinHostPort(host,udpPort))
-    if err != nil {
-        fmt.Println("Failed to get adress for port: " + udpPort)
-    }
-    conn, err := net..DialUDP("udp", nil, raddr)
-    if err != nil{
-        fmt.Println("Error")
-    }
-    go udpReceive(udpPort)
-	for{
-		time.Sleep(1000*time.Millisecond)
-		conn.Write([]byte("Shahrukh Khan"))
-		fmt.Println("Message sent")
-        }	
+func udpSend(recvaddr *net.UDPAddr) {
+	recvaddr.Port = host
+
+	conn, err := net.DialUDP("udp", nil, recvaddr)
+	defer conn.Close()
+	if err != nil {
+		fmt.Println("Error")
+	}
+
+	msg := []byte("Shahrukh Khan\x00")
+	conn.Write(msg)
+	fmt.Println("Message sent", string(msg))
+
+	sock2, _ := net.ListenUDP("udp", ":"+recvaddr.Port)
+
+	buff2 := make([]byte, 1024)
+	n, sendaddr, _ := sock2.ReadFrom(buff2)
+	fmt.Printf("%+v\n", sendaddr)
+	fmt.Println("Got back", string(buff2[:n]))
 }
 
-func main(){
-    udpSend()
-    
+func main() {
+	udpRecieve(udpPort)
+
 }
