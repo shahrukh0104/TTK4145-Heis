@@ -23,7 +23,7 @@ func udpRecieve(port string) {
 		fmt.Println(string(buff[:n]))
 		fmt.Printf("%+v\n", recvaddr)
 		udpSend(recvaddr)
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(1000 * time.Millisecond)
 
 	}
 	defer sock.Close()
@@ -42,12 +42,6 @@ func udpSend(recvaddr *net.UDPAddr) {
 	conn.Write(msg)
 	fmt.Println("Message sent", string(msg))
 
-	sock2, _ := net.ListenUDP("udp", ":"+recvaddr.Port)
-
-	buff2 := make([]byte, 1024)
-	n, sendaddr, _ := sock2.ReadFrom(buff2)
-	fmt.Printf("%+v\n", sendaddr)
-	fmt.Println("Got back", string(buff2[:n]))
 }
 
 func main() {
