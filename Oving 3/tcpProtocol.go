@@ -12,38 +12,45 @@ const (
 
 func TCPserver() {
 
-	fmt.Println("Listening for TCP connection on " + "30000" + ":" + "20016")
-	addr, _ := net.ResolveTCPAddr("tcp", PORT)
+	fmt.Println("Listening for TCP connection on " + HOST)
+	addr, _ := net.ResolveTCPAddr("tcp", ":"+HOST)
 	tcpListenSocket, err := net.ListenTCP("tcp", addr)
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer tcpListenSocket.Close()
-	for {
-		tcpConnectSocket, err := tcpListenSocket.AcceptTCP()
-		defer tcpConnectSocket.Close()
-
-		if err != nil {
-			fmt.Println(err)
+	go func() {
+		defer tcpListenSocket.Close()
+		for {
+			tcpConnectSocket, err := tcpListenSocket.AcceptTCP()
+			defer tcpConnectSocket.Close()
+			fmt.Println("Accepted!")
+			if err != nil {
+				fmt.Println(err)
+			}
+			go tcpHandleSomethingSomething(tcpConnectSocket)
 		}
-		go tcpHandleSomethingSomething(tcpConnectSocket)
-
-	}
+	}()
 }
 
 func TCPclient() {
-	fmt.Println("Connect to this socket: 129.241.187.147")
-	tcpConnectSocket, err := net.Dial("tcp", "129.241.187.147:33546")
+	fmt.Println("Connecting to this socket: 129.241.187.23")
+	tcpConnectSocket, err := net.Dial("tcp", "129.241.187.23:33546")
 
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
-	tcpConnectSocket.Write([]byte("Connect to: 129.241.187.147:33546\x00"))
+	tcpConnectSocket.Write([]byte("Connect to: 129.241.187.147:" + HOST + "\x00"))
+	for {
+	}
 }
 
-func tcpHandleSomethingSomething(socket *net.TCPConn) {
-	fmt.Println("message recieved")
+func tcpHandleSomethingSomething(conn *net.TCPConn) {
+	message := make([]byte, 1024)
+	conn.Read(message)
+	fmt.Println("Message: " + string(message))
+
 }
 
 func main() {
