@@ -21,10 +21,6 @@ var buttonChannelMatrix Matrix
 
 
 
-
-
-
-
 func elev_set_stop_lamp() {
 	
 }
@@ -171,46 +167,11 @@ for i := 0; i < N_FLOORS; i++ {
 
 
 
-func elevInitMatrices() {
-	lampChannelMatrix.Set(0,0,LIGHT_UP1)
-	lampChannelMatrix.Set(0,1,LIGHT_DOWN1)
-	lampChannelMatrix.Set(0,2,LIGHT_COMMAND1)
-	
-	lampChannelMatrix.Set(1,0,LIGHT_UP2)
-	lampChannelMatrix.Set(1,1,LIGHT_DOWN2)
-	lampChannelMatrix.Set(1,2, LIGHT_COMMAND2)
-	
-	lampChannelMatrix.Set(2,0,LIGHT_UP3)
-	lampChannelMatrix.Set(2,1,LIGHT_DOWN3)
-	lampChannelMatrix.Set(2,2,LIGHT_COMMAND3)
-	
-	lampChannelMatrix.Set(3,0,LIGHT_UP4)
-	lampChannelMatrix.Set(3,1,LIGHT_DOWN4)
-	lampChannelMatrix.Set(3,2,LIGHT_COMMAND4)
-	
-	
-	buttonChannelMatrix.Set(0,0,FLOOR_UP1)
-	buttonChannelMatrix.Set(0,1,FLOOR_DOWN1)
-	buttonChannelMatrix.Set(0,2,FLOOR_COMMAND1)
-	
-	buttonChannelMatrix.Set(1,0,FLOOR_UP2)
-	buttonChannelMatrix.Set(1,1,FLOOR_DOWN2)
-	buttonChannelMatrix.Set(1,2,FLOOR_COMMAND2)
-	
-	buttonChannelMatrix.Set(2,0,FLOOR_UP3)
-	buttonChannelMatrix.Set(2,1,FLOOR_DOWN3)
-	buttonChannelMatrix.Set(2,2,FLOOR_COMMAND3)
-	
-	buttonChannelMatrix.Set(3,0,FLOOR_UP4)
-	buttonChannelMatrix.Set(3,1,FLOOR_DOWN4)
-	buttonChannelMatrix.Set(3,2,FLOOR_COMMAND4)
-}
 
 
-
-
-
-
+//Hva trenger heisen å vite fra driveren
+// Hvilken knapper har blitt trykket inn
+// Etasjelys
 
 
 
@@ -226,8 +187,8 @@ func elevInitMatrices() {
 func elevInit(){
 	fmt.Println("Initializing driver")
 
-	lampChannelMatrix = matrixNewMatrix(N_FlOORS, N_BUTTONS)
-	buttonChannelMatrix = matrixNewMatrix(N_FlOORS, N_BUTTONS)
+	lampChannelMatrix = matrixNew(N_FlOORS, N_BUTTONS)
+	buttonChannelMatrix = matrixNew(N_FlOORS, N_BUTTONS)
 	elevInitMatrices()
 
 	if(!io_init()){
@@ -242,6 +203,8 @@ func elevInit(){
 
 
 	//Kjøre ned til 1 etasje?
+	//Sette opp tråder
+	//En struct for buttons (etasje og push)
 	fmt.Println("Driver initialization complete")
 }
 
