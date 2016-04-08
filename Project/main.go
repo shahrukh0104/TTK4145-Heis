@@ -9,18 +9,18 @@ const N_FLOORS = 4
 
 func main() {
 	//Initialize hardware
-	if driver.Elev_init() == 0 {
+	if driver.ElevInit() == 0 {
 		fmt.Println("Unable to initialize elevator hardware!\n")
 		return
 	}
 
 	fmt.Println("Press STOP button to stop elevator and exit program.\n")
 
-	driver.Elev_set_speed(-300)
+	driver.ElevSetSpeed(-300)
 	floorChan := make(chan int)
 	buttonPressChan := make(chan driver.ButtonPress)
 	stopChan := make(chan bool)
-	go driver.Elev_poller(floorChan, buttonPressChan, stopChan)
+	go driver.ElevPoller(floorChan, buttonPressChan, stopChan)
 
 	for {
 		select {
@@ -28,10 +28,10 @@ func main() {
 			fmt.Println("Floor: ", floor)
 			switch floor {
 			case 0:
-				driver.Elev_set_speed(300)
+				driver.ElevSetSpeed(300)
 				break
 			case N_FLOORS - 1:
-				driver.Elev_set_speed(-300)
+				driver.ElevSetSpeed(-300)
 				break
 			}
 
@@ -41,7 +41,7 @@ func main() {
 		case stop := <-stopChan:
 			fmt.Println("Stop: ", stop)
 			if stop {
-				driver.Elev_set_speed(0)
+				driver.ElevSetSpeed(0)
 				return
 			}
 		}
