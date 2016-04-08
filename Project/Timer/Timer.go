@@ -14,7 +14,7 @@ var(
 	timerFlag bool = false
 )
 
-func checkTimer(timeOut chan int) {
+func TimeCheck(timeOut chan int) {
 	for {
 		if (time.Since(timer) > DoorOpenTime) && timerFlag == true {
 			timerFlag = false
@@ -25,7 +25,7 @@ func checkTimer(timeOut chan int) {
 	}
 }
 
-func DoorTimer(timer chan string, timeOut chan int) {
+func TimerDoor(timer chan string, timeOut chan int) {
 	go checkTimer(timeOut)
 
 	for {
