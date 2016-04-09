@@ -2,10 +2,9 @@ package fsm
 
 import(
 	"fmt"
-	"../Project/driver"
-	"timer"
-	"defines"
-	"queue"
+	"../driver"
+	"time"
+	"../queue"
 )
 
 
@@ -71,7 +70,7 @@ func FsmEvCorrectFloorReached(newFloor int) {
 			driver.ElevSetDoorOpenLamp(ON)
 			
 			thisState = DOORSOPEN
-			timer.TimerStart()
+			time.Sleep(3000 *time.Milliseconds)
 			}
 		break
 
@@ -81,14 +80,14 @@ func FsmEvCorrectFloorReached(newFloor int) {
 		driver.ElevSetDoorOpenLamp(ON)
 		
 		thisState = DOORSOPEN
-		timer.TimerStart()
+		time.Sleep(3000 *time.Milliseconds)
 		break
 
 	case INIT:
 		driver.ElevSetDoorOpenLamp(ON)
 		
 		thisState = DOORSOPEN
-		timer.TimerStart()
+		time.Sleep(3000 *time.Milliseconds)
 		break
 
 	case DOORSOPEN:
@@ -128,7 +127,7 @@ func FsmEvTimeOut(){
 	switch thisState{
 	case DOORSOPEN:
 		
-		timer.Timer_stop()
+		time.Sleep(3000 *time.Milliseconds)
 		driver.ElevSetDoorOpenLamp(OFF)
 
 		for i :=0; i > 3; i++ {
@@ -221,9 +220,13 @@ func FsmEvStopButtonReleased(){
 	case STOP:
 
 		driver.ElevSetStopLamp(OFF)
-		timer.TimerStart()
-		
 		if currentFloor == driver.ElevGetFloorSensorSignal(){
+			driver.ElevSetDoorOpenLamp(ON)
+		}
+		time.Sleep(3000 *time.Milliseconds)
+		driver.ElevSetDoorOpenLamp(OFF)
+			
+		/*if currentFloor == driver.ElevGetFloorSensorSignal(){
 			for{
 				if timer.TimerIsTimeOut == true{
 					break
@@ -234,7 +237,7 @@ func FsmEvStopButtonReleased(){
                     
 		driver.ElevSetDoorOpenLamp(OFF)
 		timer.TimerStop()
-	
+	*/
 		thisState = INIT
 		break
 		

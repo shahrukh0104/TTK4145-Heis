@@ -1,15 +1,14 @@
 package queue
 
 import(
-	"fmt"
-	"timer"
-	"../Project/driver"
-	"defines"
+	. "../driver"
+	. "../defines"
 )
+
 
 func QueueOrderExists() bool { 
 	for i := 0; i < N_FLOORS; i++{
-		if(Msg.OrdersInside[i] == true || Msg.OrderUp[i] == true || Msg.OrderDown[i] == true){
+		if Msg.OrdersInside[i] != 0 || Msg.OrderUp[i] != 0 || Msg.OrderDown[i] != 0{
 			return true
 		}
 	}
@@ -18,31 +17,31 @@ func QueueOrderExists() bool {
 
 func QueueSetLights() {
 	for i := 0; i < N_FLOORS;i++{
-		driver.ElevSetButtonLamp(BUTTON_COMMAND, i, OrdersInside[i])
+		ElevSetButtonLamp(BUTTON_COMMAND, i, Msg.OrdersInside[i])
 		if i != 0{
-			driver.ElevSetButtonLamp(BUTTON_CALL_DOWN, i, OrderDown[i])
+			ElevSetButtonLamp(BUTTON_CALL_DOWN, i, Msg.OrderDown[i])
 		}
 		if i != 3{
-			driver.ElevSetButtonLamp(BUTTON_CALL_UP, i, OrderUp[i])
+			ElevSetButtonLamp(BUTTON_CALL_UP, i, Msg.OrderUp[i])
 		}
 	}
 }
 
 func QueueAddOrder(floor int, buttonTypePressed int) {
 	if buttonTypePressed == BUTTON_CALL_UP{
-		OrderUp[floor] = true
+		Msg.OrderUp[floor] = 1
 	}
 	if buttonTypePressed == BUTTON_CALL_DOWN{
-		OrderDown[floor] = true
+		Msg.OrderDown[floor] = 1
 	}
 	if buttonTypePressed == BUTTON_COMMAND{
-		OrdersInside[floor] = true
+		Msg.OrdersInside[floor] = 1
 	}
 }
 
 func QueueOrdersAbove(currentFloor int) bool{
 	for f := currentFloor+1;  f<4; f++ {
-		if OrdersInside[f] == true || OrderUp[f] == true || OrderDown[f] == true{
+		if Msg.OrdersInside[f] != 0 || Msg.OrderUp[f] != 0 || Msg.OrderDown[f] != 0{
 			return true
 		} 
 	}
@@ -51,7 +50,7 @@ func QueueOrdersAbove(currentFloor int) bool{
 
 func QueueOrdersBelow(currentFloor int) bool{
 	for f := 0; f<currentFloor; f++{
-		if OrdersInside[f] == true || OrderUp[f] == true || OrderDown[f] == true{
+		if Msg.OrdersInside[f] != 0  || Msg.OrderUp[f] != 0 || Msg.OrderDown[f] != 0{
 			return true
 		}
 	}
@@ -94,12 +93,11 @@ func QueueChooseDirection(currentFloor int, prevDir int) int {
 
 func QueueShouldStop(floor int, prevDir int) int{
 	if prevDir == -1{
-		return OrderDown[floor] == true || OrderInside[floor] == true || QueueOrdersBelow(floor)==false || floor == 0
+		return Msg.OrderDown[floor] || Msg.OrderInside[floor] || QueueOrdersBelow(floor)=false || floor = 0
 	}
 	if prevDir == 1{
-		return OrderUp[floor]==true || OrderInside[floor]==true || QueueOrdersAbove(floor)==false || floor == 3
-	}
-	return 1
+		return Msg.OrderUp[floor] || Msg.OrderInside[floor] || QueueOrdersAbove(floor)=false || floor = 3
+	}return 1
 }
 
 
@@ -107,18 +105,18 @@ func QueueShouldStop(floor int, prevDir int) int{
 
 func QueueDeleteAllOrders() {
 	for i :=0 ; i<N_FLOORS; i++ {
-		orderUp[i] 		= false
-		orderDown[i]	= false
-		orderInside[i]	= false 
+		Msg.orderUp[i] 		= 0
+		Msg.orderDown[i]	= 0
+		Msg.orderInside[i]	= 0 
 	}
 	QueueSetLights()
 }
 
 func DeleteCompleted(floor int, prevDirn int){
 	
-	orderInside[floor]	= false
-	orderUp[floor]		= false
-	orderDown[floor]	= false
+	Msg.orderInside[floor]	= 0
+	Msg.orderUp[floor]		= 0
+	Msg.orderDown[floor]	= 0
 	
 	QueueSetLights()	
 }

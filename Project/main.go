@@ -2,6 +2,9 @@ package main
 
 import (
 	"../Project/driver"
+	"../Project/fsm"
+	"../Project/queue"
+	"time"
 	"fmt"
 )
 
@@ -13,6 +16,82 @@ func main() {
 		fmt.Println("Unable to initialize elevator hardware!\n")
 		return
 	}
+
+
+
+	fsm.FsmStartUp()
+
+	for{
+
+		var prevButtons [4][3]int
+		for i := 0; i < 4; i++{
+			for btn := 0; btn < 3; btn++{
+				button bool = driver.ElevgetButtonSignal(btn,i)
+				if prevButtons[i][btn] != button && button == true{
+					fsm.FsmEvButtonPressed(btn,i)
+				}
+				prevButtons[i][btn] = button
+
+			}
+
+		}
+		queue.QueueSetLights()
+		fsm.FsmSetIndicator()
+
+		var prevOrderExist bool
+		o bool = queue.QueueOrderExist()
+		if o != prevOrderExist{
+			if o == true{
+				fsm.FsmEvOrderExist()
+			}
+		}
+		prevOrderExist = o
+
+		
+
+		var prevCorrectFloorReached int = -1
+		f int = driver.ElevGetFloorSensorSignal()
+		if f!= prevCorrectFloorReached && f != -1{
+			fsm.FsmEvCorrectFloorReached(f)
+		}
+		prevCorrectFloorReached = f
+
+
+		var prevTimeOut int
+		t int = 3
+		if t != prevTimeOut{
+			if t == 3{
+				fsm.FsmEvTimeOut()
+			}
+		}
+		prevTimeOut = t
+
+
+		var prevStopButton int
+		s int = fsm.FsmStopButtonIsPressed()
+		if s != prevStopButton{
+			if s == true{
+				fsm.FsmEvStopButtonPressed()
+			}
+			else{
+				fsm.FsmEvStopButtonReleased()
+			}
+			prevStopButton = s
+		}
+
+
+
+
+	}
+
+
+}
+
+
+
+
+
+/*
 
 	fmt.Println("Press STOP button to stop elevator and exit program.\n")
 
@@ -55,7 +134,6 @@ func main() {
 				driver.Elev_set_speed(0)
 				break
 			}
-		*/
-	}
+			}
 	return
-}
+	*/

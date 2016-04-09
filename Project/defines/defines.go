@@ -29,11 +29,13 @@ const(
 	STOP 				int = 4
 )
 
-type Msg struct{
+type MSG struct{
 	State			int
 	PrevFloor		int
 	Dir				int
-	OrderUp			[N_FLOORS]int
+	OrderUp			[N_FLOORS]int 
 	OrderDown		[N_FLOORS]int
 	OrdersInside	[N_FLOORS]int
 }
+
+var Msg = MSG{}
