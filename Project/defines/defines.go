@@ -8,8 +8,8 @@ const(
 
 
 	//DIRECTIONS
-	DIR_UP				int = 1
-	DIR_DOWN			int = -1
+	DIR_UP				int = 300
+	DIR_DOWN			int = -300
 	DIR_STOP			int = 0
 	
 	//LIGHTS
@@ -33,9 +33,9 @@ type MSG struct{
 	State			int
 	PrevFloor		int
 	Dir				int
-	OrderUp			[N_FLOORS]int 
-	OrderDown		[N_FLOORS]int
-	OrdersInside	[N_FLOORS]int
+	OrderUp			[N_FLOORS] int
+	OrderDown		[N_FLOORS] int
+	OrderInside		[N_FLOORS] int
 }
 
 var Msg = MSG{}

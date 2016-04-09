@@ -1,44 +1,46 @@
 package fsm
 
 import(
-	"fmt"
-	"../driver"
+	."../driver"
+	."../defines"
 	"time"
-	"../queue"
+	."../queue"
+	"fmt"
 )
 
 
-thisState 		State 	= Msg.State
-direction 		int		= 0 
-currentFloor 	int		= -1
+var thisState		int 	= Msg.State
+var direction 		int		= 0 
+var currentFloor 	int		= -1
 
 func FsmStartup() {
 	for{
-		if driver.ElevGetFloorSignal() != -1{
+		if ElevGetFloorSensorSignal() != -1{
 			break
 		}
-		driver.ElevSetMotorDirection(DIR_DOWN)
-		floor int = driver.ElevGetFloorSignal()
+		ElevSetSpeed(DIR_DOWN)
+		var floor int = ElevGetFloorSensorSignal()
 		if floor != 1{
 			currentFloor = floor
-			driver.ElevSetMotorDirection(DIR_STOP)
+			ElevSetSpeed(DIR_STOP)
 		}
 	}
 	thisState = IDLE
+	fmt.Println("State:", thisState)
 }
 
 func FsmEvOrderExist() {
 	switch thisState{
 	case INIT:
-		direction = queue.QueueChooseDirection(currentFloor, direction)
-		ElevSetMotorDirection(direction)
+		direction = QueueChooseDirection(currentFloor, direction)
+		ElevSetSpeed(direction)
 		
 		thisState = MOVING
 		break
 
 	case IDLE:
-		direction = queue.QueueChooseDirection(currentFloor, direction)
-		driver.ElevSetMotorDirection(direction)
+		direction = QueueChooseDirection(currentFloor, direction)
+		ElevSetSpeed(direction)
 		
 		thisState = MOVING
 		break
@@ -47,15 +49,15 @@ func FsmEvOrderExist() {
 		break
 
 
-	case DOORSOPEN
-		driver.ElevSetDoorOpenLamp(OFF)
-		direction = queue.QueueChooseDirection(currentFloor, direction)
-		driver.ElevSetMotorDirection(direction)
+	case DOORSOPEN:
+		ElevSetDoorOpenLamp(LIGHT_OFF)
+		direction = QueueChooseDirection(currentFloor, direction)
+		ElevSetSpeed(direction)
 		
 		thisState = MOVING
 		break
 
-	case STOP
+	case STOP:
 		break
 	}
 }
@@ -65,29 +67,29 @@ func FsmEvCorrectFloorReached(newFloor int) {
 
 	switch thisState{
 	case MOVING:
-		if queue.QueueShouldStop(currentFloor, direction){
-			driver.ElevSetMotorDirection(DIR_STOP)
-			driver.ElevSetDoorOpenLamp(ON)
+		if QueueShouldStop(currentFloor, direction) == 0{
+			ElevSetSpeed(DIR_STOP)
+			ElevSetDoorOpenLamp(LIGHT_ON)
 			
 			thisState = DOORSOPEN
-			time.Sleep(3000 *time.Milliseconds)
+			time.Sleep(30 *time.Millisecond)
 			}
 		break
 
 	case IDLE:
-		driver.ElevSetMotorDirection(DIR_STOP)
+		ElevSetSpeed(DIR_STOP)
 		direction = DIR_STOP
-		driver.ElevSetDoorOpenLamp(ON)
+		ElevSetDoorOpenLamp(LIGHT_ON)
 		
 		thisState = DOORSOPEN
-		time.Sleep(3000 *time.Milliseconds)
+		time.Sleep(30 *time.Millisecond)
 		break
 
 	case INIT:
-		driver.ElevSetDoorOpenLamp(ON)
+		ElevSetDoorOpenLamp(LIGHT_ON)
 		
 		thisState = DOORSOPEN
-		time.Sleep(3000 *time.Milliseconds)
+		time.Sleep(30 *time.Millisecond)
 		break
 
 	case DOORSOPEN:
@@ -99,22 +101,18 @@ func FsmEvCorrectFloorReached(newFloor int) {
 }
 
 func FsmEvButtonPressed(buttonPressed int,floor int){
-
 	switch thisState{
 	case MOVING:
-		queue.QueueAddOrder(floor, buttonPressed) 
+		QueueAddOrder(floor, buttonPressed) 
 		break
-
 	case IDLE:
-		queue.QueueAddOrder(floor, buttonPressed) 
+		QueueAddOrder(floor, buttonPressed) 
 		break
-
 	case INIT: 
-		queue.QueueAddOrder(floor, buttonPressed) 
+		QueueAddOrder(floor, buttonPressed) 
 		break
-
 	case DOORSOPEN:
-		queue.QueueAddOrder(floor, buttonPressed) 
+		QueueAddOrder(floor, buttonPressed) 
 		break
 
 	case STOP:
@@ -127,16 +125,16 @@ func FsmEvTimeOut(){
 	switch thisState{
 	case DOORSOPEN:
 		
-		time.Sleep(3000 *time.Milliseconds)
-		driver.ElevSetDoorOpenLamp(OFF)
+		time.Sleep(30 *time.Millisecond)
+		ElevSetDoorOpenLamp(LIGHT_OFF)
 
 		for i :=0; i > 3; i++ {
-			driver.ElevSetButtonLamp(i, currentFloor, OFF)
+			ElevSetButtonLamp(i, currentFloor, LIGHT_OFF)
 		}
 
-		direction = queue.QueueChooseDirection(currentFloor, direction)
-		driver.ElevSetMotorDirection(direction)
-		queue.QueueDeleteCompleted(currentFloor, direction)
+		direction = QueueChooseDirection(currentFloor, direction)
+		ElevSetSpeed(direction)
+		QueueDeleteCompleted(currentFloor, direction)
 		
 		
 		if direction == DIR_STOP{
@@ -164,42 +162,42 @@ func FsmEvStopButtonPressed(){
 	switch thisState{
 	case IDLE:
 		
-		driver.ElevSetMotorDirection(DIR_STOP)
+		ElevSetSpeed(DIR_STOP)
 		direction = DIR_STOP
-		driver.ElevSetStopLamp(ON)
-		driver.ElevSetDoorOpenLamp(ON)
-		queue.QueueDeleteAllOrders()
+		ElevSetStopLamp(LIGHT_ON)
+		ElevSetDoorOpenLamp(LIGHT_ON)
+		QueueDeleteAllOrders()
 	
 		thisState = STOP
 		break
 		
 	case MOVING:
 		
-		driver.ElevSetMotorDirection(DIR_STOP)
+		ElevSetSpeed(DIR_STOP)
 		direction = DIR_STOP
-		driver.ElevSetStopLamp(ON)
-		queue.QueueDeleteAllOrders()
+		ElevSetStopLamp(LIGHT_ON)
+		QueueDeleteAllOrders()
 	
 		thisState = STOP
 		break
 		
 	case DOORSOPEN:
 		
-		driver.ElevSetMotorDirection(DIR_STOP)
+		ElevSetSpeed(DIR_STOP)
 		direction = DIR_STOP
-		driver.ElevSetStopLamp(ON)
-		driver.ElevSetDoorOpenLamp(ON)
-		queue.QueueDeleteAllOrders()
+		ElevSetStopLamp(LIGHT_ON)
+		ElevSetDoorOpenLamp(LIGHT_ON)
+		QueueDeleteAllOrders()
 		
 		thisState = STOP
 		break
 		
 	case INIT:
-		driver.ElevSetStopLamp(ON)
-		if currentFloor == driver.ElevGetFloorSensorSignal(){
-			driver.ElevSetDoorOpenLamp(ON)
+		ElevSetStopLamp(LIGHT_ON)
+		if currentFloor == ElevGetFloorSensorSignal(){
+			ElevSetDoorOpenLamp(LIGHT_ON)
 		}else{
-			driver.ElevSetDoorOpenLamp(OFF)
+			ElevSetDoorOpenLamp(LIGHT_OFF)
 		}
 
 		thisState = STOP
@@ -207,8 +205,8 @@ func FsmEvStopButtonPressed(){
 	
 	case STOP:
 	
-		driver.ElevSetStopLamp(ON)
-		driver.ElevSetDoorOpenLamp(OFF)
+		ElevSetStopLamp(LIGHT_ON)
+		ElevSetDoorOpenLamp(LIGHT_OFF)
 		
 		thisState = STOP
 		break
@@ -219,12 +217,12 @@ func FsmEvStopButtonReleased(){
 	switch thisState{
 	case STOP:
 
-		driver.ElevSetStopLamp(OFF)
-		if currentFloor == driver.ElevGetFloorSensorSignal(){
-			driver.ElevSetDoorOpenLamp(ON)
+		ElevSetStopLamp(LIGHT_OFF)
+		if currentFloor == ElevGetFloorSensorSignal(){
+			ElevSetDoorOpenLamp(LIGHT_ON)
 		}
-		time.Sleep(3000 *time.Milliseconds)
-		driver.ElevSetDoorOpenLamp(OFF)
+		time.Sleep(30 *time.Millisecond)
+		ElevSetDoorOpenLamp(LIGHT_OFF)
 			
 		/*if currentFloor == driver.ElevGetFloorSensorSignal(){
 			for{
@@ -258,14 +256,14 @@ func FsmEvStopButtonReleased(){
 
 func FsmSetIndicator(){
 	for i := 0; i<4; i++{
-		if driver.ElevGetFloorSensorSignal() == i {
-			driver.ElevSetFloorIndiator(i)
+		if ElevGetFloorSensorSignal() == i {
+			ElevSetFloorIndicator(i)
 		}
 	}
 }
 
-func FsmStopButtonisPressed()bool {
-	if driver.ElevGetStopSignal() == 1){
+func FsmStopButtonisPressed() bool {
+	if ElevGetStopSignal() == 1{
 		return true
 	}else{
 		return false

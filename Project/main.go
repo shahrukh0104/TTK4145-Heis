@@ -1,48 +1,43 @@
 package main
 
 import (
-	"../Project/driver"
-	"../Project/fsm"
-	"../Project/queue"
-	"time"
+	."../Project/driver"
+	."../Project/fsm"
+	."../Project/queue"
 	"fmt"
 )
 
 const N_FLOORS = 4
 
 func main() {
-	//Initialize hardware
-	if driver.ElevInit() == 0 {
+	fmt.Println("Her")
+	if ElevInit() == 0 {
 		fmt.Println("Unable to initialize elevator hardware!\n")
 		return
 	}
-
-
-
-	fsm.FsmStartUp()
-
+	fmt.Println("Her")
+	FsmStartup()
 	for{
-
 		var prevButtons [4][3]int
 		for i := 0; i < 4; i++{
 			for btn := 0; btn < 3; btn++{
-				button bool = driver.ElevgetButtonSignal(btn,i)
-				if prevButtons[i][btn] != button && button == true{
-					fsm.FsmEvButtonPressed(btn,i)
+				var button int = ElevGetButtonSignal(btn,i)
+				if prevButtons[i][btn] != button && button == 1{
+					FsmEvButtonPressed(btn,i)
+					fmt.Println("Her")
+
 				}
 				prevButtons[i][btn] = button
-
 			}
-
 		}
-		queue.QueueSetLights()
-		fsm.FsmSetIndicator()
+		QueueSetLights()
+		FsmSetIndicator()
 
 		var prevOrderExist bool
-		o bool = queue.QueueOrderExist()
+		var o bool = QueueOrderExists()
 		if o != prevOrderExist{
 			if o == true{
-				fsm.FsmEvOrderExist()
+				FsmEvOrderExist()
 			}
 		}
 		prevOrderExist = o
@@ -50,41 +45,34 @@ func main() {
 		
 
 		var prevCorrectFloorReached int = -1
-		f int = driver.ElevGetFloorSensorSignal()
+		var f int = ElevGetFloorSensorSignal()
 		if f!= prevCorrectFloorReached && f != -1{
-			fsm.FsmEvCorrectFloorReached(f)
+			FsmEvCorrectFloorReached(f)
 		}
 		prevCorrectFloorReached = f
 
 
 		var prevTimeOut int
-		t int = 3
+		var t int = 3
 		if t != prevTimeOut{
 			if t == 3{
-				fsm.FsmEvTimeOut()
+				FsmEvTimeOut()
 			}
 		}
 		prevTimeOut = t
 
 
-		var prevStopButton int
-		s int = fsm.FsmStopButtonIsPressed()
+		var prevStopButton bool
+		var s bool = FsmStopButtonisPressed()
 		if s != prevStopButton{
 			if s == true{
-				fsm.FsmEvStopButtonPressed()
-			}
-			else{
-				fsm.FsmEvStopButtonReleased()
+				FsmEvStopButtonPressed()
+			}else{
+				FsmEvStopButtonReleased()
 			}
 			prevStopButton = s
 		}
-
-
-
-
 	}
-
-
 }
 
 
