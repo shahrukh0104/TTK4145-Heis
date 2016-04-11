@@ -8,8 +8,8 @@ const(
 
 
 	//DIRECTIONS
-	DIR_UP				int = 300
-	DIR_DOWN			int = -300
+	DIR_UP				int = 1
+	DIR_DOWN			int = -1
 	DIR_STOP			int = 0
 	
 	//LIGHTS
@@ -27,6 +27,10 @@ const(
 	MOVING				int = 2
 	DOORSOPEN			int = 3
 	STOP 				int = 4
+
+	//ELEVATOR TYPES
+	ELEVTYPE_COMEDI     int = 0
+	ELEVTYPE_SIMULATION int = 1
 )
 
 type MSG struct{

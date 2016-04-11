@@ -4,17 +4,14 @@ import (
 	."../Project/driver"
 	."../Project/fsm"
 	."../Project/queue"
+	."./defines"
 	"fmt"
 )
 
-const N_FLOORS = 4
 
 func main() {
 	fmt.Println("Her")
-	if ElevInit() == 0 {
-		fmt.Println("Unable to initialize elevator hardware!\n")
-		return
-	}
+	ElevInit(ELEVTYPE_SIMULATION)
 	fmt.Println("Her")
 	FsmStartup()
 	for{
