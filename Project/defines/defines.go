@@ -1,5 +1,7 @@
 package defines
 
+import("fmt")
+
 const(
 	//QUANTITY
 	N_FLOORS			int = 4
@@ -43,3 +45,23 @@ type MSG struct{
 }
 
 var Msg = MSG{}
+
+func PrintMsg() {
+	fmt.Println()
+
+	for i:=0;i<N_FLOORS;i++ {
+		defer fmt.Println(Msg.OrderDown[i], " " ,Msg.OrderUp[i], " ", Msg.OrderInside[i])
+	}
+	switch Msg.State {
+	case INIT:
+		fmt.Println("State: INIT")
+	case IDLE:
+		fmt.Println("State: IDLE")
+	case MOVING:
+		fmt.Println("State: MOVING")
+	case DOORSOPEN: 
+		fmt.Println("State: DOORSOPEN")
+	default:
+		fmt.Println("Invalid state: ", Msg.State)
+	}
+}

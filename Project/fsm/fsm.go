@@ -3,11 +3,10 @@ package fsm
 import(
 	."../driver"
 	."../defines"
-	"time"
+	."../timer"
 	."../queue"
 	"fmt"
 )
-
 
 var thisState		int 	= Msg.State
 var direction 		int		= 0 
@@ -29,7 +28,7 @@ func FsmStartup() {
 	fmt.Println("State:", thisState)
 }
 
-func FsmEvOrderExist() {
+func FsmEvOrderExist(){
 	switch thisState{
 	case INIT:
 		direction = QueueChooseDirection(currentFloor, direction)
@@ -72,7 +71,7 @@ func FsmEvCorrectFloorReached(newFloor int) {
 			ElevSetDoorOpenLamp(LIGHT_ON)
 			
 			thisState = DOORSOPEN
-			time.Sleep(30 *time.Millisecond)
+			Timer()
 			}
 		break
 
@@ -82,14 +81,16 @@ func FsmEvCorrectFloorReached(newFloor int) {
 		ElevSetDoorOpenLamp(LIGHT_ON)
 		
 		thisState = DOORSOPEN
-		time.Sleep(30 *time.Millisecond)
+		fmt.Println("State:", thisState)
+
+		Timer()
 		break
 
 	case INIT:
 		ElevSetDoorOpenLamp(LIGHT_ON)
 		
 		thisState = DOORSOPEN
-		time.Sleep(30 *time.Millisecond)
+		Timer()
 		break
 
 	case DOORSOPEN:
@@ -124,21 +125,21 @@ func FsmEvButtonPressed(buttonPressed int,floor int){
 func FsmEvTimeOut(){
 	switch thisState{
 	case DOORSOPEN:
-		
-		time.Sleep(30 *time.Millisecond)
-		ElevSetDoorOpenLamp(LIGHT_OFF)
+		if Timer() == true{
+			ElevSetDoorOpenLamp(LIGHT_OFF)
 
-		for i :=0; i > 3; i++ {
-			ElevSetButtonLamp(i, currentFloor, LIGHT_OFF)
+			for i :=0; i > 3; i++ {
+                ElevSetButtonLamp(i, currentFloor, LIGHT_OFF)
+                direction = QueueChooseDirection(currentFloor, direction)
+                
+                ElevSetMotorDir(direction)
+                QueueDeleteCompleted(currentFloor, direction)
+			}
 		}
 
-		direction = QueueChooseDirection(currentFloor, direction)
-		ElevSetMotorDir(direction)
-		QueueDeleteCompleted(currentFloor, direction)
-		
-		
 		if direction == DIR_STOP{
 			thisState = IDLE
+
 		}else {
 			thisState = MOVING
 		}	
@@ -158,114 +159,11 @@ func FsmEvTimeOut(){
 	}
 }
 
-func FsmEvStopButtonPressed(){
-	switch thisState{
-	case IDLE:
-		
-		ElevSetMotorDir(DIR_STOP)
-		direction = DIR_STOP
-		ElevSetStopLamp(LIGHT_ON)
-		ElevSetDoorOpenLamp(LIGHT_ON)
-		QueueDeleteAllOrders()
-	
-		thisState = STOP
-		break
-		
-	case MOVING:
-		
-		ElevSetMotorDir(DIR_STOP)
-		direction = DIR_STOP
-		ElevSetStopLamp(LIGHT_ON)
-		QueueDeleteAllOrders()
-	
-		thisState = STOP
-		break
-		
-	case DOORSOPEN:
-		
-		ElevSetMotorDir(DIR_STOP)
-		direction = DIR_STOP
-		ElevSetStopLamp(LIGHT_ON)
-		ElevSetDoorOpenLamp(LIGHT_ON)
-		QueueDeleteAllOrders()
-		
-		thisState = STOP
-		break
-		
-	case INIT:
-		ElevSetStopLamp(LIGHT_ON)
-		if currentFloor == ElevGetFloorSensorSignal(){
-			ElevSetDoorOpenLamp(LIGHT_ON)
-		}else{
-			ElevSetDoorOpenLamp(LIGHT_OFF)
-		}
-
-		thisState = STOP
-		break
-	
-	case STOP:
-	
-		ElevSetStopLamp(LIGHT_ON)
-		ElevSetDoorOpenLamp(LIGHT_OFF)
-		
-		thisState = STOP
-		break
-	}
-}
-
-func FsmEvStopButtonReleased(){
-	switch thisState{
-	case STOP:
-
-		ElevSetStopLamp(LIGHT_OFF)
-		if currentFloor == ElevGetFloorSensorSignal(){
-			ElevSetDoorOpenLamp(LIGHT_ON)
-		}
-		time.Sleep(30 *time.Millisecond)
-		ElevSetDoorOpenLamp(LIGHT_OFF)
-			
-		/*if currentFloor == driver.ElevGetFloorSensorSignal(){
-			for{
-				if timer.TimerIsTimeOut == true{
-					break
-				}
-				driver.ElevSetDoorOpenLamp(ON)
-			}
-		}
-                    
-		driver.ElevSetDoorOpenLamp(OFF)
-		timer.TimerStop()
-	*/
-		thisState = INIT
-		break
-		
-	case MOVING:
-		break
-	
-	case DOORSOPEN:
-		break
-	
-	case INIT:
-		break	
-	case IDLE:
-		break	
-		
-		
-	}
-}
 
 func FsmSetIndicator(){
 	for i := 0; i<4; i++{
 		if ElevGetFloorSensorSignal() == i {
 			ElevSetFloorIndicator(i)
 		}
-	}
-}
-
-func FsmStopButtonisPressed() bool {
-	if ElevGetStopSignal() == 1{
-		return true
-	}else{
-		return false
 	}
 }

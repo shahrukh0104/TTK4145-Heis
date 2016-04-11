@@ -9,7 +9,7 @@ import(
 
 func QueueOrderExists() bool { 
 	for i := 0; i < N_FLOORS; i++{
-		if Msg.OrderInside[i] != 0 || Msg.OrderUp[i] != 0 || Msg.OrderDown[i] != 0{
+		if Msg.OrderInside[i] == 1 || Msg.OrderUp[i] == 1 || Msg.OrderDown[i] == 1{
 			return true
 		}
 	}
@@ -43,8 +43,8 @@ func QueueAddOrder(floor int, buttonTypePressed int) {
 }
 
 func QueueOrdersAbove(currentFloor int) bool{
-	for f := currentFloor+1;  f<4; f++ {
-		if Msg.OrderInside[f] != 0 || Msg.OrderUp[f] != 0 || Msg.OrderDown[f] != 0{
+	for f := currentFloor + 1;  f < 4; f++ {
+		if Msg.OrderInside[f] == 1 || Msg.OrderUp[f] == 1 || Msg.OrderDown[f] == 1{
 			return true
 		} 
 	}
@@ -53,7 +53,7 @@ func QueueOrdersAbove(currentFloor int) bool{
 
 func QueueOrdersBelow(currentFloor int) bool{
 	for f := 0; f < currentFloor; f++{
-		if Msg.OrderInside[f] != 0  || Msg.OrderUp[f] != 0 || Msg.OrderDown[f] != 0{
+		if Msg.OrderInside[f] == 1  || Msg.OrderUp[f] == 1 || Msg.OrderDown[f] == 1{
 			return true
 		}
 	}
@@ -96,12 +96,12 @@ func QueueChooseDirection(currentFloor int, prevDir int) int {
 
 func QueueShouldStop(floor int, prevDir int) int{
 	if prevDir == -1{
-		if Msg.OrderDown[floor] != 0  || Msg.OrderInside[floor] != 0 || !QueueOrdersBelow(floor) || floor == 0{
+		if Msg.OrderDown[floor] == 1  || Msg.OrderInside[floor] == 1 || QueueOrdersBelow(floor) == false || floor == 0{
 			return 0
 		}
 	}
 	if prevDir == 1{
-		if Msg.OrderUp[floor] != 0 || Msg.OrderInside[floor] != 0 || !QueueOrdersAbove(floor) || floor == 3{
+		if Msg.OrderUp[floor] == 1 || Msg.OrderInside[floor] == 1 || QueueOrdersAbove(floor) == false || floor == 3{
 			return 0
 		}
 	}

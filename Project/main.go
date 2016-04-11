@@ -2,9 +2,10 @@ package main
 
 import (
 	."../Project/driver"
+	."../Project/defines"
 	."../Project/fsm"
 	."../Project/queue"
-	."./defines"
+    ."../Project/timer"
 	"fmt"
 )
 
@@ -15,9 +16,10 @@ func main() {
 	fmt.Println("Her")
 	FsmStartup()
 	for{
-		var prevButtons [4][3]int
-		for i := 0; i < 4; i++{
-			for btn := 0; btn < 3; btn++{
+		PrintMsg()
+		var prevButtons [N_FLOORS][N_BUTTONS]int
+		for i := 0; i < N_FLOORS; i++{
+			for btn := 0; btn < N_BUTTONS; btn++{
 				var button int = ElevGetButtonSignal(btn,i)
 				if prevButtons[i][btn] != button && button == 1{
 					FsmEvButtonPressed(btn,i)
@@ -49,31 +51,11 @@ func main() {
 		prevCorrectFloorReached = f
 
 
-		var prevTimeOut int
-		var t int = 3
-		if t != prevTimeOut{
-			if t == 3{
-				FsmEvTimeOut()
-			}
-		}
-		prevTimeOut = t
-
-
-		var prevStopButton bool
-		var s bool = FsmStopButtonisPressed()
-		if s != prevStopButton{
-			if s == true{
-				FsmEvStopButtonPressed()
-			}else{
-				FsmEvStopButtonReleased()
-			}
-			prevStopButton = s
+		if Timer() == true{
+			FsmEvTimeOut()
 		}
 	}
 }
-
-
-
 
 
 /*
