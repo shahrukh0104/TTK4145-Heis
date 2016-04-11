@@ -54,10 +54,9 @@ type ButtonPress struct {
 	Button int
 }
 
-func ElevPoller(floorChan chan int, buttonPressChan chan ButtonPress, stopChan chan bool) {
+func ElevPoller(floorChan chan int, buttonPressChan chan ButtonPress) {
 
 	prevFloor := 0
-	prevStop := false
 	var prevButtons [4][3]int
 
 	for {
@@ -67,12 +66,6 @@ func ElevPoller(floorChan chan int, buttonPressChan chan ButtonPress, stopChan c
 			floorChan <- floor
 		}
 		prevFloor = floor
-
-		stop := ElevGetStopSignal() != 0
-		if stop != prevStop {
-			stopChan <- stop
-		}
-		prevStop = stop
 
 		for f := 0; f < 4; f++ {
 			for b := 0; b < 3; b++ {

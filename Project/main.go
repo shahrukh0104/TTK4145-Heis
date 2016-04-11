@@ -11,62 +11,17 @@ import (
 
 
 func main() {
-	fmt.Println("Her")
-	ElevInit(ELEVTYPE_SIMULATION)
-	fmt.Println("Her")
-	FsmStartup()
-	for{
-		PrintMsg()
-		var prevButtons [N_FLOORS][N_BUTTONS]int
-		for i := 0; i < N_FLOORS; i++{
-			for btn := 0; btn < N_BUTTONS; btn++{
-				var button int = ElevGetButtonSignal(btn,i)
-				if prevButtons[i][btn] != button && button == 1{
-					FsmEvButtonPressed(btn,i)
-					fmt.Println("Her")
-
-				}
-				prevButtons[i][btn] = button
-			}
-		}
-		QueueSetLights()
-		FsmSetIndicator()
-
-		var prevOrderExist bool
-		var o bool = QueueOrderExists()
-		if o != prevOrderExist{
-			if o == true{
-				FsmEvOrderExist()
-			}
-		}
-		prevOrderExist = o
-
-		
-
-		var prevCorrectFloorReached int = -1
-		var f int = ElevGetFloorSensorSignal()
-		if f!= prevCorrectFloorReached && f != -1{
-			FsmEvCorrectFloorReached(f)
-		}
-		prevCorrectFloorReached = f
-
-
-		if Timer() == true{
-			FsmEvTimeOut()
-		}
-	}
-}
-
-
-/*
 
 	fmt.Println("Press STOP button to stop elevator and exit program.\n")
 
-	driver.ElevSetSpeed(-300)
-	floorChan := make(chan int)
-	buttonPressChan := make(chan driver.ButtonPress)
-	stopChan := make(chan bool)
-	go driver.ElevPoller(floorChan, buttonPressChan, stopChan)
+	ElevInit(ELEVTYPE_SIMULATION)
+	floorCh := make(chan int)
+	buttonPressCh := make(chan ButtonPress)
+	go ElevPoller(floorCh, buttonPressCh)
+	go Fsm(floorChan, buttonPress)
+
+
+
 
 	for {
 		select {
@@ -74,10 +29,12 @@ func main() {
 			fmt.Println("Floor: ", floor)
 			switch floor {
 			case 0:
-				driver.ElevSetSpeed(300)
+				ElevSetMotorDir(DIR_UP)
+				IoSetIndicator()
 				break
 			case N_FLOORS - 1:
-				driver.ElevSetSpeed(-300)
+				ElevSetMotorDir(DIR_DOWN)
+				IoSetIndicator()
 				break
 			}
 
@@ -87,20 +44,32 @@ func main() {
 		case stop := <-stopChan:
 			fmt.Println("Stop: ", stop)
 			if stop {
-				driver.ElevSetSpeed(0)
+				ElevSetMotorDir(DIR_STOP)
 				return
 			}
 		}
+	}
+}
 
-		/*
-			// Change direction when we reach top/bottom floor
-			if driver.Elev_get_floor_sensor_signal() == N_FLOORS-1 {
-				fmt.Println("her")
-			} else if driver.Elev_get_floor_sensor_signal() == 0 {
-			} else if driver.Elev_get_stop_signal() == 1 {
-				driver.Elev_set_speed(0)
-				break
-			}
-			}
-	return
-	*/
+
+
+
+
+
+
+//git add .
+
+//git commit -a -m "Fsm nearly complete"
+
+//git push
+
+
+
+
+
+
+
+
+
+
+
