@@ -18,11 +18,11 @@ func FsmStartup() {
 		if ElevGetFloorSensorSignal() != -1{
 			break
 		}
-		ElevSetSpeed(DIR_DOWN)
+		ElevSetMotorDir(DIR_DOWN)
 		var floor int = ElevGetFloorSensorSignal()
 		if floor != 1{
 			currentFloor = floor
-			ElevSetSpeed(DIR_STOP)
+			ElevSetMotorDir(DIR_STOP)
 		}
 	}
 	thisState = IDLE
@@ -33,14 +33,14 @@ func FsmEvOrderExist() {
 	switch thisState{
 	case INIT:
 		direction = QueueChooseDirection(currentFloor, direction)
-		ElevSetSpeed(direction)
+		ElevSetMotorDir(direction)
 		
 		thisState = MOVING
 		break
 
 	case IDLE:
 		direction = QueueChooseDirection(currentFloor, direction)
-		ElevSetSpeed(direction)
+		ElevSetMotorDir(direction)
 		
 		thisState = MOVING
 		break
@@ -52,7 +52,7 @@ func FsmEvOrderExist() {
 	case DOORSOPEN:
 		ElevSetDoorOpenLamp(LIGHT_OFF)
 		direction = QueueChooseDirection(currentFloor, direction)
-		ElevSetSpeed(direction)
+		ElevSetMotorDir(direction)
 		
 		thisState = MOVING
 		break
@@ -68,7 +68,7 @@ func FsmEvCorrectFloorReached(newFloor int) {
 	switch thisState{
 	case MOVING:
 		if QueueShouldStop(currentFloor, direction) == 0{
-			ElevSetSpeed(DIR_STOP)
+			ElevSetMotorDir(DIR_STOP)
 			ElevSetDoorOpenLamp(LIGHT_ON)
 			
 			thisState = DOORSOPEN
@@ -77,7 +77,7 @@ func FsmEvCorrectFloorReached(newFloor int) {
 		break
 
 	case IDLE:
-		ElevSetSpeed(DIR_STOP)
+		ElevSetMotorDir(DIR_STOP)
 		direction = DIR_STOP
 		ElevSetDoorOpenLamp(LIGHT_ON)
 		
@@ -133,7 +133,7 @@ func FsmEvTimeOut(){
 		}
 
 		direction = QueueChooseDirection(currentFloor, direction)
-		ElevSetSpeed(direction)
+		ElevSetMotorDir(direction)
 		QueueDeleteCompleted(currentFloor, direction)
 		
 		
@@ -162,7 +162,7 @@ func FsmEvStopButtonPressed(){
 	switch thisState{
 	case IDLE:
 		
-		ElevSetSpeed(DIR_STOP)
+		ElevSetMotorDir(DIR_STOP)
 		direction = DIR_STOP
 		ElevSetStopLamp(LIGHT_ON)
 		ElevSetDoorOpenLamp(LIGHT_ON)
@@ -173,7 +173,7 @@ func FsmEvStopButtonPressed(){
 		
 	case MOVING:
 		
-		ElevSetSpeed(DIR_STOP)
+		ElevSetMotorDir(DIR_STOP)
 		direction = DIR_STOP
 		ElevSetStopLamp(LIGHT_ON)
 		QueueDeleteAllOrders()
@@ -183,7 +183,7 @@ func FsmEvStopButtonPressed(){
 		
 	case DOORSOPEN:
 		
-		ElevSetSpeed(DIR_STOP)
+		ElevSetMotorDir(DIR_STOP)
 		direction = DIR_STOP
 		ElevSetStopLamp(LIGHT_ON)
 		ElevSetDoorOpenLamp(LIGHT_ON)

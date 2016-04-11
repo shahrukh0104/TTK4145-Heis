@@ -1,6 +1,6 @@
 package driver // where "driver" is the folder that contains io.go, io.c, io.h, channels.go, channels.h and driver.go
 /*
-#cgo CFLAGS: -std=c11
+#cgo CFLAGS: -std=gnu11
 #cgo LDFLAGS: -lcomedi -lm
 #include "elev.h"
 #include "channels.h"
@@ -8,12 +8,12 @@ package driver // where "driver" is the folder that contains io.go, io.c, io.h, 
 */
 import "C"
 
-func ElevInit() int {
-	return int(C.elev_init())
+func ElevInit(elevatorType int) {
+	C.elev_init(C.elev_type(elevatorType))
 }
 
-func ElevSetSpeed(speed int) {
-	C.elev_set_speed(C.int(speed))
+func ElevSetMotorDir(dir int) {
+	C.elev_set_motor_direction(C.elev_motor_direction_t(dir))
 }
 
 func ElevSetDoorOpenLamp(value int) {
