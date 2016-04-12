@@ -1,4 +1,4 @@
-package main
+package network
 
 import(
 	"fmt"
@@ -14,29 +14,6 @@ type Udp_message struct{
 	Raddr string
 	Data []byte
 	Length int
-}
-
-
-func UdpReceiveServer(lconn, bconn *net.UDPConn, message_size int, receive_ch chan Udp_message) {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Error in receive:", r)
-			lconn.Close()
-			bconn.Close()
-		}
-	}()
-	bconn_rcv_ch := make(chan Udp_message)
-	lconn_rcv_ch := make(chan Udp_message)
-	go udp_connection_reader(lconn, message_size, lconn_rcv_ch)
-	go udp_connection_reader(bconn, message_size, bconn_rcv_ch)
-	for {
-		select {
-		case buf := <-bconn_rcv_ch:
-			receive_ch <- buf
-		case buf := <-lconn_rcv_ch:
-			receive_ch <- buf
-		}
-	}
 }
 
 func UdpInit(llport, blport, message_size int, send_ch, receive_ch chan Udp_message) (err error) {
@@ -62,6 +39,31 @@ func UdpInit(llport, blport, message_size int, send_ch, receive_ch chan Udp_mess
 	go UdpTransmitServer(llconn, blconn, send_ch)
 	return err
 }
+
+
+func UdpReceiveServer(lconn, bconn *net.UDPConn, message_size int, receive_ch chan Udp_message) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Error in receive:", r)
+			lconn.Close()
+			bconn.Close()
+		}
+	}()
+	bconn_rcv_ch := make(chan Udp_message)
+	lconn_rcv_ch := make(chan Udp_message)
+	go udp_connection_reader(lconn, message_size, lconn_rcv_ch)
+	go udp_connection_reader(bconn, message_size, bconn_rcv_ch)
+	for {
+		select {
+		case buf := <-bconn_rcv_ch:
+			receive_ch <- buf
+		case buf := <-lconn_rcv_ch:
+			receive_ch <- buf
+		}
+	}
+}
+
+
 
 func UdpTransmitServer(lconn, bconn *net.UDPConn, send_ch chan Udp_message) {
 	defer func() {

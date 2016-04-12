@@ -11,6 +11,7 @@ func getmyip()Ip{
 	interfaces, err := net.Interfaces()
 	if err!=nil{
 		fmt.Println(err)
+		return ""
 	}
 	for _,i:= range interfaces{
 		addrs, err := i.Addrs()
@@ -23,11 +24,10 @@ func getmyip()Ip{
 					return Ip(ipnet.IP.String()) 
 		}
 	}
-	return 
+	return "" 
 
 }
 
 func getsendersip(sender *net.UDPAddr)Ip{
 	return Ip(sender.IP.String())
 }
-
