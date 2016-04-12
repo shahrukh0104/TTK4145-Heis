@@ -37,16 +37,14 @@ const(
 
 type MSG struct{
 	State			int
-	PrevFloor		int
+	Floor	 		int
 	Dir				int
 	OrderUp			[N_FLOORS] int
 	OrderDown		[N_FLOORS] int
 	OrderInside		[N_FLOORS] int
 }
 
-var Msg = MSG{}
-
-func PrintMsg() {
+func PrintMsg(Msg *MSG) {
 	fmt.Println()
 
 	for i:=0;i<N_FLOORS;i++ {

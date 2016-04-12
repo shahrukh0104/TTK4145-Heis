@@ -3,11 +3,10 @@ package queue
 import(
 	. "../driver"
 	. "../defines"
-	"fmt"
 )
 
 
-func QueueOrderExists() bool { 
+func QueueOrderExists(Msg *MSG) bool { 
 	for i := 0; i < N_FLOORS; i++{
 		if Msg.OrderInside[i] == 1 || Msg.OrderUp[i] == 1 || Msg.OrderDown[i] == 1{
 			return true
@@ -16,7 +15,7 @@ func QueueOrderExists() bool {
 	return false
 }
 
-func QueueSetLights() {
+func QueueSetLights(Msg *MSG) {
 	for i := 0; i < N_FLOORS;i++{
 		ElevSetButtonLamp(BUTTON_COMMAND, i, Msg.OrderInside[i])
 		if i != 0{
@@ -28,22 +27,22 @@ func QueueSetLights() {
 	}
 }
 
-func QueueAddOrder(floor int, buttonTypePressed int) {
-	fmt.Println("HERERRER")
+func QueueAddOrder(Msg *MSG, buttonFloor int, buttonTypePressed int) {
 
 	if buttonTypePressed == BUTTON_CALL_UP{
-		Msg.OrderUp[floor] = 1
+		Msg.OrderUp[buttonFloor] = 1
 	}
 	if buttonTypePressed == BUTTON_CALL_DOWN{
-		Msg.OrderDown[floor] = 1
+		Msg.OrderDown[buttonFloor] = 1
 	}
 	if buttonTypePressed == BUTTON_COMMAND{
-		Msg.OrderInside[floor] = 1
+		Msg.OrderInside[buttonFloor] = 1
 	}
+	QueueSetLights(Msg)
 }
 
-func QueueOrdersAbove(currentFloor int) bool{
-	for f := currentFloor + 1;  f < 4; f++ {
+func QueueOrdersAbove(Msg *MSG) bool{
+	for f := Msg.Floor + 1;  f < 4; f++ {
 		if Msg.OrderInside[f] == 1 || Msg.OrderUp[f] == 1 || Msg.OrderDown[f] == 1{
 			return true
 		} 
@@ -51,8 +50,8 @@ func QueueOrdersAbove(currentFloor int) bool{
 	return false
 }
 
-func QueueOrdersBelow(currentFloor int) bool{
-	for f := 0; f < currentFloor; f++{
+func QueueOrdersBelow(Msg *MSG) bool{
+	for f := 0; f < Msg.Floor; f++{
 		if Msg.OrderInside[f] == 1  || Msg.OrderUp[f] == 1 || Msg.OrderDown[f] == 1{
 			return true
 		}
@@ -60,31 +59,31 @@ func QueueOrdersBelow(currentFloor int) bool{
 	return false
 }
 
-func QueueChooseDirection(currentFloor int, prevDir int) int {
-	if prevDir == DIR_UP{
-		if QueueOrdersAbove(currentFloor){
+func QueueChooseDirection(Msg *MSG) int {
+	if Msg.Dir == DIR_UP{
+		if QueueOrdersAbove(Msg){
 			return DIR_UP
-		}else if QueueOrdersBelow(currentFloor){
+		}else if QueueOrdersBelow(Msg){
 			return DIR_DOWN
 		}else{
 			return DIR_STOP
 		}
 	}
 
-	if prevDir == DIR_DOWN{
-		if QueueOrdersBelow(currentFloor){
+	if Msg.Dir == DIR_DOWN{
+		if QueueOrdersBelow(Msg){
 			return DIR_DOWN
-		}else if QueueOrdersAbove(currentFloor){
+		}else if QueueOrdersAbove(Msg){
 			return DIR_UP
 		}else{
 			return DIR_STOP
 		}
 	}
 
-	if prevDir == DIR_STOP{
-		if QueueOrdersAbove(currentFloor){
+	if Msg.Dir == DIR_STOP{
+		if QueueOrdersAbove(Msg){
 			return DIR_UP
-		}else if QueueOrdersBelow(currentFloor){
+		}else if QueueOrdersBelow(Msg){
 			return DIR_DOWN
 		}else{
 			return DIR_STOP
@@ -94,37 +93,36 @@ func QueueChooseDirection(currentFloor int, prevDir int) int {
 }
 
 
-func QueueShouldStop(floor int, prevDir int) int{
-	if prevDir == -1{
-		if Msg.OrderDown[floor] == 1  || Msg.OrderInside[floor] == 1 || QueueOrdersBelow(floor) == false || floor == 0{
-			return 0
+func QueueShouldStop(Msg *MSG) bool {
+	if Msg.Dir == DIR_DOWN {
+		if Msg.OrderDown[Msg.Floor] == 1  || Msg.OrderInside[Msg.Floor] == 1 || QueueOrdersBelow(Msg) == false || Msg.Floor == 0{
+			return true
+		}
+	} else {
+		if Msg.OrderUp[Msg.Floor] == 1 || Msg.OrderInside[Msg.Floor] == 1 || QueueOrdersAbove(Msg) == false || Msg.Floor == 3{
+			return true
 		}
 	}
-	if prevDir == 1{
-		if Msg.OrderUp[floor] == 1 || Msg.OrderInside[floor] == 1 || QueueOrdersAbove(floor) == false || floor == 3{
-			return 0
-		}
-	}
-	return 1
+	return false
 }
 
 
 
-func QueueDeleteAllOrders() {
+func QueueDeleteAllOrders(Msg *MSG) {
 	for i :=0 ; i < N_FLOORS; i++ {
 		Msg.OrderUp[i] 		= 0
 		Msg.OrderDown[i]	= 0
 		Msg.OrderInside[i]	= 0 
 	}
-	QueueSetLights()
+	QueueSetLights(Msg)
 }
 
-func QueueDeleteCompleted(floor int, prevDirn int){
+func QueueDeleteCompleted(Msg *MSG){
 	
-	Msg.OrderInside[floor]	= 0
-	Msg.OrderUp[floor]		= 0
-	Msg.OrderDown[floor]	= 0
+	Msg.OrderInside[Msg.Floor]	= 0
+	Msg.OrderUp[Msg.Floor]		= 0
+	Msg.OrderDown[Msg.Floor]	= 0
 	
-	QueueSetLights()	
+	QueueSetLights(Msg)	
 }
 

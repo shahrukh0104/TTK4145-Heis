@@ -56,7 +56,7 @@ type ButtonPress struct {
 
 func ElevPoller(floorChan chan int, buttonPressChan chan ButtonPress) {
 
-	prevFloor := 0
+	prevFloor := -1
 	var prevButtons [4][3]int
 
 	for {
