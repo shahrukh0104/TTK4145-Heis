@@ -1,15 +1,16 @@
 package network
 
 import (
+	. "encoding/json"
+	"fmt"
 	. "net"
 	. "strings"
-	. "encoding/json"
 	"time"
-	"fmt"
 )
 
-const udpAlivePort = "12336"
-const udpMsgPort = "12334"
+const udpAlivePort = "12376"
+const udpMsgPort = "12834"
+const receiveFromSelf = false
 
 func IPString(addr Addr) string {
 	return Split(addr.String(), ":")[0]
@@ -20,9 +21,9 @@ var localIP string
 func GetLocalIP() string {
 
 	if localIP == "" {
-		addr,_ := ResolveTCPAddr("tcp4","google.com:80")
+		addr, _ := ResolveTCPAddr("tcp4", "google.com:80")
 		localConn, err := DialTCP("tcp4", nil, addr)
-		if err == nil{
+		if err == nil {
 			localIP = IPString(localConn.LocalAddr())
 			localConn.Close()
 		}
@@ -31,15 +32,14 @@ func GetLocalIP() string {
 	return localIP
 }
 
-type Msg struct {
-	SomeInteger	int
-	SomeArray  	[]bool
-	Receiver 	string
+type NetWorkMsg struct {
+	Msgtype int
+	Data    string
 }
 
-func UdpSendMsg(msgs <-chan Msg){
+func UdpSendMsg(msgs <-chan NetworkMsg) {
 	localIP := GetLocalIP()
-	udpAddr, _ := ResolveUDPAddr("udp4", localIP[0:LastIndex(localIP, ".") + 1]+"255:"+udpMsgPort)
+	udpAddr, _ := ResolveUDPAddr("udp4", localIP[0:LastIndex(localIP, ".")+1]+"255:"+udpMsgPort)
 	udpConn, _ := DialUDP("udp4", nil, udpAddr)
 	for {
 		m := <-msgs
@@ -49,52 +49,47 @@ func UdpSendMsg(msgs <-chan Msg){
 
 }
 
-func UdpRecvMsg(msgs chan<- Msg){
+func UdpRecvMsg(msgs chan<- NetworkMsg) {
 	localIP := GetLocalIP()
-	udpAddr, _ 		:= ResolveUDPAddr("udp4", ":"+udpMsgPort)
-	readConn, _ 	:= ListenUDP("udp4", udpAddr)
+	udpAddr, _ := ResolveUDPAddr("udp4", ":"+udpMsgPort)
+	readConn, _ := ListenUDP("udp4", udpAddr)
 
 	var buf [1024]byte
 
 	for {
 		n, fromAddress, _ := readConn.ReadFromUDP(buf[0:])
 
-		if localIP != fromAddress.IP.String() {
-			var m Msg
+		if receiveFromSelf || localIP != fromAddress.IP.String() {
+			var m NetWorkMsg
 			Unmarshal(buf[0:n], &m)
-			if m.Receiver == localIP {
-				msgs <- m
-			}
+			msgs <- m
 		}
 	}
 
 }
 
-
-
 func UdpSendAlive() {
 
 	localIP := GetLocalIP()
-	udpAddr, _ := ResolveUDPAddr("udp4", localIP[0:LastIndex(localIP, ".") + 1]+"255:"+udpAlivePort)
+	udpAddr, _ := ResolveUDPAddr("udp4", localIP[0:LastIndex(localIP, ".")+1]+"255:"+udpAlivePort)
 	udpConn, _ := DialUDP("udp4", nil, udpAddr)
 
 	for {
-		time.Sleep(15*time.Millisecond)
+		time.Sleep(15 * time.Millisecond)
 		udpConn.Write([]byte("I am alive"))
 	}
 }
 
-
-func UdpRecvAlive(peerListLocalCh chan []string){
+func UdpRecvAlive(peerListLocalCh chan []string) {
 
 	var buf [1024]byte
 
 	lastSeen := make(map[string]time.Time)
 	hasChanges := false
-	aliveTimeout := 50*time.Millisecond
+	aliveTimeout := 50 * time.Millisecond
 
-	udpAddr, _ 		:= ResolveUDPAddr("udp4", ":"+udpAlivePort)
-	readConn, e 	:= ListenUDP("udp4", udpAddr)
+	udpAddr, _ := ResolveUDPAddr("udp4", ":"+udpAlivePort)
+	readConn, e := ListenUDP("udp4", udpAddr)
 	fmt.Println(e)
 
 	for {
@@ -107,12 +102,12 @@ func UdpRecvAlive(peerListLocalCh chan []string){
 		if err != nil {
 			continue
 		}
-		
+
 		addrString := fromAddress.IP.String()
 
 		_, addrIsInList := lastSeen[addrString]
 
-		if !addrIsInList {			
+		if !addrIsInList {
 			hasChanges = true
 		}
 
@@ -125,7 +120,7 @@ func UdpRecvAlive(peerListLocalCh chan []string){
 				delete(lastSeen, k)
 			}
 		}
-		
+
 		if hasChanges {
 			peerList := make([]string, 0, len(lastSeen))
 
@@ -137,4 +132,3 @@ func UdpRecvAlive(peerListLocalCh chan []string){
 		}
 	}
 }
-

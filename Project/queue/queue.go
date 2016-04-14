@@ -1,128 +1,123 @@
 package queue
 
-import(
-	. "../driver"
+import (
 	. "../defines"
+	. "../driver"
 )
 
-
-func QueueOrderExists(Msg *MSG) bool { 
-	for i := 0; i < N_FLOORS; i++{
-		if Msg.OrderInside[i] == 1 || Msg.OrderUp[i] == 1 || Msg.OrderDown[i] == 1{
+func QueueOrderExists(States *States) bool {
+	for i := 0; i < N_FLOORS; i++ {
+		if States.OrderInside[i] == 1 || States.OrderUp[i] == 1 || States.OrderDown[i] == 1 {
 			return true
 		}
 	}
 	return false
 }
 
-func QueueSetLights(Msg *MSG) {
-	for i := 0; i < N_FLOORS;i++{
-		ElevSetButtonLamp(BUTTON_COMMAND, i, Msg.OrderInside[i])
-		if i != 0{
-			ElevSetButtonLamp(BUTTON_CALL_DOWN, i, Msg.OrderDown[i])
+func QueueSetLights(States *States) {
+	for i := 0; i < N_FLOORS; i++ {
+		ElevSetButtonLamp(BUTTON_COMMAND, i, States.OrderInside[i])
+		if i != 0 {
+			ElevSetButtonLamp(BUTTON_CALL_DOWN, i, States.OrderDown[i])
 		}
-		if i != 3{
-			ElevSetButtonLamp(BUTTON_CALL_UP, i, Msg.OrderUp[i])
+		if i != 3 {
+			ElevSetButtonLamp(BUTTON_CALL_UP, i, States.OrderUp[i])
 		}
 	}
 }
 
-func QueueAddOrder(Msg *MSG, buttonFloor int, buttonTypePressed int) {
+func QueueAddOrder(States *States, buttonFloor int, buttonTypePressed int) {
 
-	if buttonTypePressed == BUTTON_CALL_UP{
-		Msg.OrderUp[buttonFloor] = 1
+	if buttonTypePressed == BUTTON_CALL_UP {
+		States.OrderUp[buttonFloor] = 1
 	}
-	if buttonTypePressed == BUTTON_CALL_DOWN{
-		Msg.OrderDown[buttonFloor] = 1
+	if buttonTypePressed == BUTTON_CALL_DOWN {
+		States.OrderDown[buttonFloor] = 1
 	}
-	if buttonTypePressed == BUTTON_COMMAND{
-		Msg.OrderInside[buttonFloor] = 1
+	if buttonTypePressed == BUTTON_COMMAND {
+		States.OrderInside[buttonFloor] = 1
 	}
-	QueueSetLights(Msg)
+	QueueSetLights(States)
 }
 
-func QueueOrdersAbove(Msg *MSG) bool{
-	for f := Msg.Floor + 1;  f < 4; f++ {
-		if Msg.OrderInside[f] == 1 || Msg.OrderUp[f] == 1 || Msg.OrderDown[f] == 1{
-			return true
-		} 
-	}
-	return false
-}
-
-func QueueOrdersBelow(Msg *MSG) bool{
-	for f := 0; f < Msg.Floor; f++{
-		if Msg.OrderInside[f] == 1  || Msg.OrderUp[f] == 1 || Msg.OrderDown[f] == 1{
+func QueueOrdersAbove(States *States) bool {
+	for f := States.Floor + 1; f < 4; f++ {
+		if States.OrderInside[f] == 1 || States.OrderUp[f] == 1 || States.OrderDown[f] == 1 {
 			return true
 		}
 	}
 	return false
 }
 
-func QueueChooseDirection(Msg *MSG) int {
-	if Msg.Dir == DIR_UP{
-		if QueueOrdersAbove(Msg){
+func QueueOrdersBelow(States *States) bool {
+	for f := 0; f < States.Floor; f++ {
+		if States.OrderInside[f] == 1 || States.OrderUp[f] == 1 || States.OrderDown[f] == 1 {
+			return true
+		}
+	}
+	return false
+}
+
+func QueueChooseDirection(States *States) int {
+	if States.Dir == DIR_UP {
+		if QueueOrdersAbove(States) {
 			return DIR_UP
-		}else if QueueOrdersBelow(Msg){
+		} else if QueueOrdersBelow(States) {
 			return DIR_DOWN
-		}else{
+		} else {
 			return DIR_STOP
 		}
 	}
 
-	if Msg.Dir == DIR_DOWN{
-		if QueueOrdersBelow(Msg){
+	if States.Dir == DIR_DOWN {
+		if QueueOrdersBelow(States) {
 			return DIR_DOWN
-		}else if QueueOrdersAbove(Msg){
+		} else if QueueOrdersAbove(States) {
 			return DIR_UP
-		}else{
+		} else {
 			return DIR_STOP
 		}
 	}
 
-	if Msg.Dir == DIR_STOP{
-		if QueueOrdersAbove(Msg){
+	if States.Dir == DIR_STOP {
+		if QueueOrdersAbove(States) {
 			return DIR_UP
-		}else if QueueOrdersBelow(Msg){
+		} else if QueueOrdersBelow(States) {
 			return DIR_DOWN
-		}else{
+		} else {
 			return DIR_STOP
 		}
 	}
 	return DIR_STOP
 }
 
-
-func QueueShouldStop(Msg *MSG) bool {
-	if Msg.Dir == DIR_DOWN {
-		if Msg.OrderDown[Msg.Floor] == 1  || Msg.OrderInside[Msg.Floor] == 1 || QueueOrdersBelow(Msg) == false || Msg.Floor == 0{
+func QueueShouldStop(States *States) bool {
+	if States.Dir == DIR_DOWN {
+		if States.OrderDown[States.Floor] == 1 || States.OrderInside[States.Floor] == 1 || QueueOrdersBelow(States) == false || States.Floor == 0 {
 			return true
 		}
 	} else {
-		if Msg.OrderUp[Msg.Floor] == 1 || Msg.OrderInside[Msg.Floor] == 1 || QueueOrdersAbove(Msg) == false || Msg.Floor == 3{
+		if States.OrderUp[States.Floor] == 1 || States.OrderInside[States.Floor] == 1 || QueueOrdersAbove(States) == false || States.Floor == 3 {
 			return true
 		}
 	}
 	return false
 }
 
-
-
-func QueueDeleteAllOrders(Msg *MSG) {
-	for i :=0 ; i < N_FLOORS; i++ {
-		Msg.OrderUp[i] 		= 0
-		Msg.OrderDown[i]	= 0
-		Msg.OrderInside[i]	= 0 
+func QueueDeleteAllOrders(States *States) {
+	for i := 0; i < N_FLOORS; i++ {
+		States.OrderUp[i] = 0
+		States.OrderDown[i] = 0
+		States.OrderInside[i] = 0
 	}
-	QueueSetLights(Msg)
+	QueueSetLights(States)
 }
 
-func QueueDeleteCompleted(Msg *MSG){
-	
-	Msg.OrderInside[Msg.Floor]	= 0
-	Msg.OrderUp[Msg.Floor]		= 0
-	Msg.OrderDown[Msg.Floor]	= 0
-	
-	QueueSetLights(Msg)	
-}
+func QueueDeleteCompleted(States *States) {
 
+	States.OrderInside[States.Floor] = 0
+	States.OrderUp[States.Floor] = 0
+	States.OrderDown[States.Floor] = 0
+
+	QueueSetLights(States)
+}

@@ -1,0 +1,137 @@
+Nettverket:
+
+Høyeste IP er master. Alle andre er slaves. Alle bestillinger skal sendes på nettverket, og alle heiser skal ha kopier av bestillingene. Heisene har en seperat, lokal liste over sine indre bestillinger. Ytre bestillingene sendes på nettverket og masterheisen legger bestillingen i sin kø-kopi før den regner ut alle heisers kostnader for den nye bestillingen, og delegerer vestillingen ut i fra dette og sender ut oppdatert kø på nettverket. 
+
+
+case: vi trykker på en knapp
+Msg.Floor settes
+
+
+
+
+
+case: ekstern knappeTrykk
+	Sendes på nettverket
+	bestillingsknappene til alle heisene går på
+	cost funksjonenen sjekker hvem som er nærmest og velger heis
+	
+	
+case: intern knappeTrykk
+	Aktuelle heis skal ta denne
+	
+	
+
+
+Network data types (or things we need to be able to send in our generic network message struct):
+	NewOrder(floor, callType, IP)
+	CompletedOrder(floor, callType)
+	ElevatorState(floor, dirn, cabOrders, behaviour/"state")
+	
+	HowTo implement: 
+		type NetworkMsg struct {
+			msgtype int
+			msg string 
+		}
+		json-encode/decode this type in network module (already exists?, just replace contents of network.Msg type, don't import "defines" any more)
+		json-encode/decode the msg-string, depending on what the msgtype int says it is
+			Maybe make msgtype a string? For readability? (For reading raw network messages, not having to look up int's in a table is easier)
+	
+
+All events:
+	Receive from network
+		NewOrder
+		CompletedOrder
+		ElevatorState
+		Note: assume that we do not receive messages from ourselves
+	From elevator hardware
+		Floor arrival
+		Button press
+	From timers
+		Door close
+		Fail to arrive at floor (implement this last)
+
+
+All data:
+	States of all elevators:
+		Floor
+		Direction
+		All orders (both cab and hall)
+		Behaviour/"state":
+			Door open
+			moving
+			idle
+			init?
+			
+	Hall orders
+		IP of elevator taking this order (todo: useful name), or emptystring
+		
+	List of peers
+	
+	
+	Note: We use strings as IP/ID, always. (eg "129.241.187.123")
+	
+		
+Exec / on channel receive's:
+	On button press:
+		If cab order:
+			Add to states[localIP].cabOrders, or hold door open longer if order is at this floor
+			Save orders to file, which we read during init? Or do this periodically? Need to save to file both on new order and completed order, periodic might be "easier" (less duplication).
+		If hall order:
+			Calculate IP of best fit elevator
+			Send NewOrder(order.floor, order.callType, servicerIP) to network
+	On floor arrival:
+		Already have this in fsm
+		Remember to send new state to network!
+	On door timer
+		Ditto
+	On new order:
+		Add to hall order table
+		Add to states[localIP].orders if newOrder.servicerIP == localIP
+	On completed order:
+		Remove from hall order table
+	On peer list change:
+		If any hall order has servicerIP not in peers:
+			Take this order ourselves
+		
+	
+		
+Functions:
+	Cost function:
+		(states, hallOrders, peers, ButtonPress(floor, callType)) -> IP
+			Temp solution: choose a random peer (lol)
+			
+	ShouldStop:
+	ChooseDirection:
+	ClearOrdersAtFloor:
+		Remember to send CompletedOrder
+	
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
