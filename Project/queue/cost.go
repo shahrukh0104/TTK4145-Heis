@@ -61,6 +61,4 @@ func CostGlobal(states map[string]*ElevatorState, peerList []string, localIP str
 		}
 	}
 	return minstCostIP
-
-	//return ip of minimum cost, or something in case two elevators have the same cost. Add last byte of IP?
 }

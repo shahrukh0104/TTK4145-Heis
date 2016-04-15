@@ -209,7 +209,7 @@ func main() {
 				case BUTTON_COMMAND:
 					onNewOrder(b.Floor, b.Button)
 
-					//TODO: Add to file
+
 					break
 				case BUTTON_CALL_DOWN, BUTTON_CALL_UP:
 					fmt.Println("hall button pressed ", peerList)
@@ -217,16 +217,9 @@ func main() {
 					newOrderSendCh <- NewOrder{Floor: b.Floor, ButtonType: b.Button, IP: ServicerIP}
 					if(ServicerIP == localIP){
 						onNewOrder(b.Floor, b.Button)
-					}
-				/*
-				case BUTTON_CALL_UP:
-					ServicerIP := CostGlobal(states, peerList, localIP, b.Floor, b.Button)
-					newOrderSendCh <- NewOrder{Floor: b.Floor, ButtonType: b.Button, IP: ServicerIP}
-					if(ServicerIP == localIP){
-						onNewOrder(b.Floor, b.Button)
-					}
-				*/
+					}	
 			}
 		}
-	}
+	}	
 }
+		
