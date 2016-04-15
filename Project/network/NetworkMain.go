@@ -1,10 +1,11 @@
 package network
 
 import (
-	. "encoding/json"
+	"encoding/json"
 	"fmt"
-	"sort"
-	"time"
+	//"sort"
+	//"time"
+	. "../defines"
 )
 
 var NEWORDER int = 0
@@ -23,31 +24,34 @@ type CompletedOrder struct {
 }
 
 type ElevatorState struct {
-	Floor        int
-	Dir          int
-	OrdersInside []int
-	State        int
+	State       int
+	Floor       int
+	Dir         int
+	OrderUp     [N_FLOORS]int
+	OrderDown   [N_FLOORS]int
+	OrderInside [N_FLOORS]int
+	IP          string
 }
 
-func NetworkMsgPacker(msgToNetworkCh chan<- NetWorkMsg, newOrderCh <-chan NewOrder, CompletedOrderCh <-chan CompletedOrder, elevatorStateCh <-chan ElevatorState) {
+func NetworkMsgPacker(msgToNetworkCh chan<- NetworkMsg, newOrderCh <-chan NewOrder, CompletedOrderCh <-chan CompletedOrder, elevatorStateCh <-chan ElevatorState) {
 	for {
 		select {
 		case newOrder := <-newOrderCh:
-			buf := json.Marshal(newOrder)
-			msgToNetworkCh <- NetWorkMsg{Msgtype: NEWORDER, Data: string(buf)}
+			buf, _ := json.Marshal(newOrder)
+			msgToNetworkCh <- NetworkMsg{Msgtype: NEWORDER, Data: buf}
 
 		case completedOrder := <-CompletedOrderCh:
-			buf := json.Marshal(completedOrder)
-			msgToNetworkCh <- NetWorkMsg{Msgtype: COMPLETEDORDER, Data: string(buf)}
+			buf, _ := json.Marshal(completedOrder)
+			msgToNetworkCh <- NetworkMsg{Msgtype: COMPLETEDORDER, Data: buf}
 
 		case elevatorState := <-elevatorStateCh:
-			buf := json.Marshal(elevatorState)
-			msgToNetworkCh <- NetWorkMsg{Msgtype: ELEVATORSTATE, Data: string(buf)}
+			buf, _ := json.Marshal(elevatorState)
+			msgToNetworkCh <- NetworkMsg{Msgtype: ELEVATORSTATE, Data: buf}
 		}
 	}
 
 }
-func NetworkMsgUnpacker(msgFromNetworkCh <-chan NetWorkMsg, newOrderCh chan<- NewOrder, CompletedOrderCh chan<- CompletedOrder, ElevatorStateCh chan<- ElevatorState) {
+func NetworkMsgUnpacker(msgFromNetworkCh <-chan NetworkMsg, newOrderCh chan<- NewOrder, completedOrderCh chan<- CompletedOrder, elevatorStateCh chan<- ElevatorState) {
 	for {
 		msg := <-msgFromNetworkCh
 		switch msg.Msgtype {
@@ -67,6 +71,26 @@ func NetworkMsgUnpacker(msgFromNetworkCh <-chan NetWorkMsg, newOrderCh chan<- Ne
 			elevatorStateCh <- elevatorState
 
 		}
+	}
+}
+
+func PrintElevatorState(e *ElevatorState) {
+	fmt.Println()
+
+	for i := 0; i < N_FLOORS; i++ {
+		defer fmt.Println(e.OrderDown[i], " ", e.OrderUp[i], " ", e.OrderInside[i])
+	}
+	switch e.State {
+	case INIT:
+		fmt.Println("State: INIT")
+	case IDLE:
+		fmt.Println("State: IDLE")
+	case MOVING:
+		fmt.Println("State: MOVING")
+	case DOORSOPEN:
+		fmt.Println("State: DOORSOPEN")
+	default:
+		fmt.Println("Invalid state: ", e.State)
 	}
 }
 

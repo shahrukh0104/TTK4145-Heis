@@ -1,7 +1,7 @@
 package defines
 
 import (
-	"fmt"
+	//"fmt"
 )
 
 const (
@@ -36,32 +36,6 @@ const (
 	ELEVTYPE_SIMULATION int = 1
 )
 
-type States struct {
-	State       int
-	Floor       int
-	Dir         int
-	OrderUp     [N_FLOORS]int
-	OrderDown   [N_FLOORS]int
-	OrderInside [N_FLOORS]int
-	IP          string
-}
 
-func PrintMsg(Msg *MSG) {
-	fmt.Println()
 
-	for i := 0; i < N_FLOORS; i++ {
-		defer fmt.Println(Msg.OrderDown[i], " ", Msg.OrderUp[i], " ", Msg.OrderInside[i])
-	}
-	switch Msg.State {
-	case INIT:
-		fmt.Println("State: INIT")
-	case IDLE:
-		fmt.Println("State: IDLE")
-	case MOVING:
-		fmt.Println("State: MOVING")
-	case DOORSOPEN:
-		fmt.Println("State: DOORSOPEN")
-	default:
-		fmt.Println("Invalid state: ", Msg.State)
-	}
-}
+

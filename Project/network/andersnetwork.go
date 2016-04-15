@@ -17,7 +17,6 @@ func IPString(addr Addr) string {
 }
 
 var localIP string
-
 func GetLocalIP() string {
 
 	if localIP == "" {
@@ -32,9 +31,9 @@ func GetLocalIP() string {
 	return localIP
 }
 
-type NetWorkMsg struct {
+type NetworkMsg struct {
 	Msgtype int
-	Data    string
+	Data    []byte
 }
 
 func UdpSendMsg(msgs <-chan NetworkMsg) {
@@ -43,6 +42,7 @@ func UdpSendMsg(msgs <-chan NetworkMsg) {
 	udpConn, _ := DialUDP("udp4", nil, udpAddr)
 	for {
 		m := <-msgs
+		//fmt.Println("msg to network:", m.Msgtype, ", ", string(m.Data))
 		buf, _ := Marshal(m)
 		udpConn.Write(buf)
 	}
@@ -60,8 +60,9 @@ func UdpRecvMsg(msgs chan<- NetworkMsg) {
 		n, fromAddress, _ := readConn.ReadFromUDP(buf[0:])
 
 		if receiveFromSelf || localIP != fromAddress.IP.String() {
-			var m NetWorkMsg
+			var m NetworkMsg
 			Unmarshal(buf[0:n], &m)
+			//fmt.Println("msg from network:", m.Msgtype, ", ", string(m.Data))
 			msgs <- m
 		}
 	}

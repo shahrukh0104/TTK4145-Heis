@@ -3,86 +3,89 @@ package queue
 import (
 	. "../defines"
 	. "../driver"
+	. "../network"
 )
 
-func QueueOrderExists(States *States) bool {
+
+func QueueOrderExists(e *ElevatorState) bool {
 	for i := 0; i < N_FLOORS; i++ {
-		if States.OrderInside[i] == 1 || States.OrderUp[i] == 1 || States.OrderDown[i] == 1 {
+		if e.OrderInside[i] == 1 || e.OrderUp[i] == 1 || e.OrderDown[i] == 1 {
 			return true
 		}
 	}
 	return false
 }
 
-func QueueSetLights(States *States) {
+func QueueSetLights(e *ElevatorState) {
 	for i := 0; i < N_FLOORS; i++ {
-		ElevSetButtonLamp(BUTTON_COMMAND, i, States.OrderInside[i])
+		ElevSetButtonLamp(BUTTON_COMMAND, i, e.OrderInside[i])
 		if i != 0 {
-			ElevSetButtonLamp(BUTTON_CALL_DOWN, i, States.OrderDown[i])
+			ElevSetButtonLamp(BUTTON_CALL_DOWN, i, e.OrderDown[i])
 		}
 		if i != 3 {
-			ElevSetButtonLamp(BUTTON_CALL_UP, i, States.OrderUp[i])
+			ElevSetButtonLamp(BUTTON_CALL_UP, i, e.OrderUp[i])
 		}
 	}
 }
 
-func QueueAddOrder(States *States, buttonFloor int, buttonTypePressed int) {
+func QueueAddOrder(e *ElevatorState, buttonFloor int, buttonTypePressed int) {
 
 	if buttonTypePressed == BUTTON_CALL_UP {
-		States.OrderUp[buttonFloor] = 1
+		e.OrderUp[buttonFloor] = 1
 	}
 	if buttonTypePressed == BUTTON_CALL_DOWN {
-		States.OrderDown[buttonFloor] = 1
+		e.OrderDown[buttonFloor] = 1
 	}
 	if buttonTypePressed == BUTTON_COMMAND {
-		States.OrderInside[buttonFloor] = 1
+		e.OrderInside[buttonFloor] = 1
 	}
-	QueueSetLights(States)
+	QueueSetLights(e)
+	BackupSavetoFile(e)
 }
 
-func QueueOrdersAbove(States *States) bool {
-	for f := States.Floor + 1; f < 4; f++ {
-		if States.OrderInside[f] == 1 || States.OrderUp[f] == 1 || States.OrderDown[f] == 1 {
+func QueueOrdersAbove(e *ElevatorState) bool {
+	for f := e.Floor + 1; f < 4; f++ {
+		if e.OrderInside[f] == 1 || e.OrderUp[f] == 1 || e.OrderDown[f] == 1 {
 			return true
 		}
 	}
 	return false
 }
 
-func QueueOrdersBelow(States *States) bool {
-	for f := 0; f < States.Floor; f++ {
-		if States.OrderInside[f] == 1 || States.OrderUp[f] == 1 || States.OrderDown[f] == 1 {
+func QueueOrdersBelow(e *ElevatorState) bool {
+	for f := 0; f < e.Floor; f++ {
+		if e.OrderInside[f] == 1 || e.OrderUp[f] == 1 || e.OrderDown[f] == 1 {
 			return true
 		}
 	}
 	return false
 }
 
-func QueueChooseDirection(States *States) int {
-	if States.Dir == DIR_UP {
-		if QueueOrdersAbove(States) {
+func QueueChooseDirection(e *ElevatorState) int {
+	if e.Dir == DIR_UP {
+		if QueueOrdersAbove(e) {
 			return DIR_UP
-		} else if QueueOrdersBelow(States) {
+		} else if QueueOrdersBelow(e) {
 			return DIR_DOWN
 		} else {
 			return DIR_STOP
 		}
 	}
 
-	if States.Dir == DIR_DOWN {
-		if QueueOrdersBelow(States) {
+	if e.Dir == DIR_DOWN {
+		if QueueOrdersBelow(e) {
 			return DIR_DOWN
-		} else if QueueOrdersAbove(States) {
+		} else if QueueOrdersAbove(e) {
 			return DIR_UP
 		} else {
 			return DIR_STOP
 		}
 	}
 
-	if States.Dir == DIR_STOP {
-		if QueueOrdersAbove(States) {
+	if e.Dir == DIR_STOP {
+		if QueueOrdersAbove(e) {
 			return DIR_UP
-		} else if QueueOrdersBelow(States) {
+		} else if QueueOrdersBelow(e) {
 			return DIR_DOWN
 		} else {
 			return DIR_STOP
@@ -91,33 +94,35 @@ func QueueChooseDirection(States *States) int {
 	return DIR_STOP
 }
 
-func QueueShouldStop(States *States) bool {
-	if States.Dir == DIR_DOWN {
-		if States.OrderDown[States.Floor] == 1 || States.OrderInside[States.Floor] == 1 || QueueOrdersBelow(States) == false || States.Floor == 0 {
+func QueueShouldStop(e *ElevatorState) bool {
+	if e.Dir == DIR_DOWN {
+		if e.OrderDown[e.Floor] == 1 || e.OrderInside[e.Floor] == 1 || QueueOrdersBelow(e) == false || e.Floor == 0 {
 			return true
 		}
 	} else {
-		if States.OrderUp[States.Floor] == 1 || States.OrderInside[States.Floor] == 1 || QueueOrdersAbove(States) == false || States.Floor == 3 {
+		if e.OrderUp[e.Floor] == 1 || e.OrderInside[e.Floor] == 1 || QueueOrdersAbove(e) == false || e.Floor == 3 {
 			return true
 		}
 	}
 	return false
 }
 
-func QueueDeleteAllOrders(States *States) {
+func QueueDeleteAllOrders(e *ElevatorState) {
 	for i := 0; i < N_FLOORS; i++ {
-		States.OrderUp[i] = 0
-		States.OrderDown[i] = 0
-		States.OrderInside[i] = 0
+		e.OrderUp[i] = 0
+		e.OrderDown[i] = 0
+		e.OrderInside[i] = 0
 	}
-	QueueSetLights(States)
+	QueueSetLights(e)
 }
 
-func QueueDeleteCompleted(States *States) {
+func QueueDeleteCompleted(e *ElevatorState) {
 
-	States.OrderInside[States.Floor] = 0
-	States.OrderUp[States.Floor] = 0
-	States.OrderDown[States.Floor] = 0
+	e.OrderInside[e.Floor] = 0
+	e.OrderUp[e.Floor] = 0
+	e.OrderDown[e.Floor] = 0
+	
 
-	QueueSetLights(States)
+	QueueSetLights(e)
+	BackupSavetoFile(e)
 }

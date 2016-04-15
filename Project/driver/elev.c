@@ -81,7 +81,7 @@ void elev_init(elev_type e) {
 
         freeaddrinfo(res);
 
-        send(sockfd, (char[4]) {0}, 4, 0);
+        //send(sockfd, (char[4]) {0}, 4, 0);
 
         break;
     }
